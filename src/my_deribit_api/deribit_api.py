@@ -26,6 +26,7 @@ class DeribitAPI(API):
     running: bool = True
     refresh_token: str = ''
     expires_in: int = 0
+    
 
     def __init__(
         self,
@@ -39,7 +40,8 @@ class DeribitAPI(API):
         private_key=None,
         private_key_pass=None,
         client_id=None,
-        client_secret=None
+        client_secret=None,
+        auto_refresh=True
     ):
         self.api_key = api_key
         self.api_secret = api_secret
@@ -69,7 +71,7 @@ class DeribitAPI(API):
             self.proxies = proxies
 
         self._logger = logging.getLogger(__name__)
-        self.auth()
+        self.auth(auto_refresh=auto_refresh)
     
     def _handle_exception(self, response):
         status_code = response.status_code
@@ -142,19 +144,12 @@ class DeribitAPI(API):
         url_path = '/private/get_position'
         return self.request_path('GET', url_path, {'instrument_name': instrument_name})
     
+    def get_positions(self, currency='BTC', kind='option'):
+        url_path = '/private/get_positions'
+        return self.request_path('GET', url_path, {'currency': currency, 'kind': kind})
     
-
-if __name__ == '__main__':
-    import json
-    with open('config.json') as fs:
-        config = json.load(fs)
-    api = DeribitAPI(base_url='https://test.deribit.com/api/v2', client_id=config['client_id'], client_secret=config['client_secret'])
-    instrument_name = "BTC-26APR24-66000-C"
-    # ret_code, data = api.get_open_orders(instrument_name)
-    # print(ret_code, data)
-    ret_code, data = api.get_instrument(instrument_name)
-    print(ret_code, data)
-    # ret_code, data = api.get_position(instrument_name)
-    # print(ret_code, data)
-
+    def get_account(self, currency='BTC', extended=False):
+        url_path = '/private/get_account_summary'
+        return self.request_path('GET', url_path, {'currency': currency, 'extended': 'true' if extended else 'false'})
+    
  
